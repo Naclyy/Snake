@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import *
-
+import time
 SIZE = 40
 BACKGROUND_COLOR = (153, 255, 255)
 
@@ -12,6 +12,7 @@ class Snake:
         self.block = pygame.image.load("resource/snake_body.png")
         self.x = SIZE
         self.y = SIZE
+        self.direction = 'down'
 
     def draw(self):
         self.parent_screen.fill(BACKGROUND_COLOR)
@@ -19,19 +20,31 @@ class Snake:
         pygame.display.flip()
 
     def move_left(self):
-        self.x -= 10
-        self.draw()
+        if self.direction != 'right':
+            self.direction = 'left'
 
     def move_right(self):
-        self.x += 10
-        self.draw()
+        if self.direction != 'left':
+            self.direction = 'right'
 
     def move_up(self):
-        self.y -= 10
-        self.draw()
+        if self.direction != 'down':
+            self.direction = 'up'
 
     def move_down(self):
-        self.y += 10
+        if self.direction != 'up':
+            self.direction = 'down'
+
+    def walk(self):
+
+        if self.direction == 'up':
+            self.y -= SIZE
+        if self.direction == 'down':
+            self.y += SIZE
+        if self.direction == 'right':
+            self.x += SIZE
+        if self.direction == 'left':
+            self.x -= SIZE
         self.draw()
 
 
@@ -65,7 +78,8 @@ class Game:
                         self.snake.move_right()
                 elif event.type == QUIT:
                     loop = False
-
+            self.snake.walk()
+            time.sleep(0.3)
 
 if __name__ == '__main__':
     game = Game()
