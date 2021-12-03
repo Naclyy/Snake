@@ -35,10 +35,11 @@ class Tree:
 
 
 class Apple:
-    def __init__(self, surface, snake):
+    def __init__(self, surface, snake, tree):
         self.image = pygame.image.load("resource/apple.png")
         self.parent_screen = surface
         self.snake = snake
+        self.tree = tree
         self.x = random.randint(1, int((SCREEN_WIDTH - SIZE) / SIZE)) * SIZE
         self.y = random.randint(1, int((SCREEN_HEIGHT - SIZE) / SIZE)) * SIZE
 
@@ -48,14 +49,23 @@ class Apple:
 
     def move(self):
         # needs improvement for the randomness
+        # logic so it wont appear on top of the snake (i)
+        # logic so it wont appear on top of the tree (j)
         i = 0
-        while i < self.snake.length:
-            if is_collision(self.snake.x[i], self.snake.y[i], self.x, self.y):
+        j = 0
+        while i < self.snake.length and j < self.tree.number_of_trees:
+            if is_collision(self.snake.x[i], self.snake.y[i], self.x, self.y) or is_collision(self.tree.x[j],
+                                                                                              self.tree.y[j], self.x,
+                                                                                              self.y):
                 self.x = random.randint(1, int((SCREEN_WIDTH - SIZE) / SIZE)) * SIZE
                 self.y = random.randint(1, int((SCREEN_HEIGHT - SIZE) / SIZE)) * SIZE
                 i = 0
+                j = 0
             else:
-                i += 1
+                if i < self.snake.length:
+                    i += 1
+                if j < self.tree.number_of_trees:
+                    j += 1
 
 
 class Snake:
@@ -145,16 +155,14 @@ class Game:
         pygame.display.flip()
         self.snake = Snake(self.surface, 1)
         self.snake.draw()
-        self.apple = Apple(self.surface, self.snake)
-        self.apple.draw()
         self.tree = Tree(self.surface)
-        self.tree.add_tree(SIZE * 2, SIZE * 3)
-        self.tree.add_tree(SIZE * 4, SIZE * 2)
-        self.tree.draw()
+        self.read_trees_from_file()
+        self.apple = Apple(self.surface, self.snake, self.tree)
+        self.apple.draw()
 
     def reset(self):
         self.snake = Snake(self.surface, 1)
-        self.apple = Apple(self.surface, self.snake)
+        self.apple = Apple(self.surface, self.snake, self.tree)
 
     def run(self):
         loop = True
@@ -186,6 +194,12 @@ class Game:
                 self.reset()
 
             time.sleep(0.5)
+
+    def read_trees_from_file(self):
+        file = open("trees_position.txt", "r")
+        for tree_coordinate in file:
+            self.tree.add_tree(int(tree_coordinate[0]) * SIZE, int(tree_coordinate[2]) * SIZE)
+        self.tree.draw()
 
     def show_game_over(self):
         global CURRENT_HIGH_SCORE
