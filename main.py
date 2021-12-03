@@ -6,8 +6,27 @@ import random
 SIZE = 40
 BACKGROUND_COLOR = (0, 230, 0)
 GRASS_COLOR = (0, 179, 0)
-SCREEN_WIDTH = SIZE * 15
-SCREEN_HEIGHT = SIZE * 15
+SCREEN_WIDTH = SIZE * 10
+SCREEN_HEIGHT = SIZE * 8
+
+
+class Tree:
+    def __init__(self, surface):
+        self.image = pygame.image.load("resource/tree.png")
+        self.parent_screen = surface
+        self.x = []
+        self.y = []
+        self.number_of_trees = 0
+
+    def add_tree(self, x, y):
+        self.x.append(x)
+        self.y.append(y)
+        self.number_of_trees += 1
+
+    def draw(self):
+        for i in range(self.number_of_trees):
+            self.parent_screen.blit(self.image, (self.x[i], self.y[i]))
+        pygame.display.flip()
 
 
 class Apple:
@@ -123,11 +142,14 @@ class Game:
         self.snake.draw()
         self.apple = Apple(self.surface, self.snake)
         self.apple.draw()
+        self.tree = Tree(self.surface)
+        self.tree.add_tree(SIZE * 2, SIZE * 3)
+        self.tree.add_tree(SIZE * 4, SIZE * 2)
+        self.tree.draw()
 
     def reset(self):
         self.snake = Snake(self.surface, 1)
         self.apple = Apple(self.surface, self.snake)
-
 
     def run(self):
         loop = True
@@ -172,7 +194,7 @@ class Game:
     def display_score(self):
         font = pygame.font.SysFont('roboto', 25)
         score = font.render(f"{self.snake.length}", True, "red")
-        score_x = int(SCREEN_WIDTH - SIZE)
+        score_x = int(SCREEN_WIDTH - SIZE + 5)
         score_y = int(SCREEN_HEIGHT - SIZE)
         apple_image = pygame.image.load("resource/apple.png")
         score_rect = score.get_rect(center=(score_x, score_y))
@@ -186,6 +208,7 @@ class Game:
     def play(self):
         self.snake.walk()
         self.apple.draw()
+        self.tree.draw()
         self.display_score()
         pygame.display.flip()
 
@@ -205,6 +228,11 @@ class Game:
                 or self.snake.y[0] < 0 and self.snake.direction == 'up' \
                 or self.snake.y[0] > SCREEN_HEIGHT - SIZE and self.snake.direction == 'down':
             raise "Game Over"
+
+        # snake colliding with tree
+        for i in range(self.tree.number_of_trees):
+            if is_collision(self.snake.x[0], self.snake.y[0], self.tree.x[i], self.tree.y[i]):
+                raise "Game Over"
 
 
 if __name__ == '__main__':
