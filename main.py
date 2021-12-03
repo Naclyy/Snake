@@ -4,10 +4,10 @@ import time
 import random
 
 SIZE = 40
-BACKGROUND_COLOR = (153, 255, 255)
-
-SCREEN_WIDTH = SIZE * 5
-SCREEN_HEIGHT = SIZE * 5
+BACKGROUND_COLOR = (0, 230, 0)
+GRASS_COLOR = (0, 179, 0)
+SCREEN_WIDTH = SIZE * 15
+SCREEN_HEIGHT = SIZE * 15
 
 
 class Apple:
@@ -34,7 +34,6 @@ class Apple:
                 i += 1
 
 
-
 class Snake:
     def __init__(self, surface, length):
         self.length = length
@@ -44,8 +43,22 @@ class Snake:
         self.y = [SIZE] * length
         self.direction = 'down'
 
+    def draw_grass(self):
+        for row in range(SCREEN_WIDTH):
+            if row % 2 == 0:
+                for col in range(SCREEN_HEIGHT):
+                    if col % 2 == 0:
+                        grass_rect = pygame.Rect(col * SIZE, row * SIZE, SIZE, SIZE)
+                        pygame.draw.rect(self.parent_screen, GRASS_COLOR, grass_rect)
+            else:
+                for col in range(SCREEN_HEIGHT):
+                    if col % 2 != 0:
+                        grass_rect = pygame.Rect(col * SIZE, row * SIZE, SIZE, SIZE)
+                        pygame.draw.rect(self.parent_screen, GRASS_COLOR, grass_rect)
+
     def draw(self):
         self.parent_screen.fill(BACKGROUND_COLOR)
+        self.draw_grass()
         for i in range(self.length):
             self.parent_screen.blit(self.block, (self.x[i], self.y[i]))
         pygame.display.flip()
@@ -105,6 +118,7 @@ class Game:
         # change the screen color
         self.surface.fill(BACKGROUND_COLOR)
 
+        pygame.display.flip()
         self.snake = Snake(self.surface, 1)
         self.snake.draw()
         self.apple = Apple(self.surface, self.snake)
@@ -113,6 +127,7 @@ class Game:
     def reset(self):
         self.snake = Snake(self.surface, 1)
         self.apple = Apple(self.surface, self.snake)
+
 
     def run(self):
         loop = True
