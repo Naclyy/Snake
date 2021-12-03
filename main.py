@@ -6,15 +6,15 @@ import random
 SIZE = 40
 BACKGROUND_COLOR = (153, 255, 255)
 
-SCREEN_WIDTH = SIZE * 25
-SCREEN_HEIGHT = SIZE * 20
+SCREEN_WIDTH = SIZE * 5
+SCREEN_HEIGHT = SIZE * 5
 
 
 class Apple:
-    def __init__(self, surface):
+    def __init__(self, surface, snake):
         self.image = pygame.image.load("resource/apple.png")
         self.parent_screen = surface
-
+        self.snake = snake
         self.x = random.randint(1, int((SCREEN_WIDTH - SIZE) / SIZE)) * SIZE
         self.y = random.randint(1, int((SCREEN_HEIGHT - SIZE) / SIZE)) * SIZE
 
@@ -23,8 +23,16 @@ class Apple:
         pygame.display.flip()
 
     def move(self):
-        self.x = random.randint(1, int((SCREEN_WIDTH - SIZE) / SIZE)) * SIZE
-        self.y = random.randint(1, int((SCREEN_HEIGHT - SIZE) / SIZE)) * SIZE
+        # needs improvement for the randomness
+        i = 0
+        while i < self.snake.length:
+            if is_collision(self.snake.x[i], self.snake.y[i], self.x, self.y):
+                self.x = random.randint(1, int((SCREEN_WIDTH - SIZE) / SIZE)) * SIZE
+                self.y = random.randint(1, int((SCREEN_HEIGHT - SIZE) / SIZE)) * SIZE
+                i = 0
+            else:
+                i += 1
+
 
 
 class Snake:
@@ -99,12 +107,12 @@ class Game:
 
         self.snake = Snake(self.surface, 1)
         self.snake.draw()
-        self.apple = Apple(self.surface)
+        self.apple = Apple(self.surface, self.snake)
         self.apple.draw()
 
     def reset(self):
         self.snake = Snake(self.surface, 1)
-        self.apple = Apple(self.surface)
+        self.apple = Apple(self.surface, self.snake)
 
     def run(self):
         loop = True
@@ -135,11 +143,11 @@ class Game:
                 pause = True
                 self.reset()
 
-            time.sleep(0.2)
+            time.sleep(0.5)
 
     def show_game_over(self):
         self.surface.fill(BACKGROUND_COLOR)
-        font = pygame.font.SysFont('arial', 30)
+        font = pygame.font.SysFont('roboto', SIZE)
         game_over = font.render(f"Game is over! Your score is: {self.snake.length}", True, (255, 255, 255))
         self.surface.blit(game_over, (120, 320))
         play_again = font.render(f"To play again press Enter. To exit press Escape!", True, (255, 255, 255))
@@ -147,9 +155,18 @@ class Game:
         pygame.display.flip()
 
     def display_score(self):
-        font = pygame.font.SysFont('arial', 30)
-        score = font.render(f"Score: {self.snake.length}", True, (255, 255, 255))
-        self.surface.blit(score, (SCREEN_WIDTH - SIZE * 5, SIZE))
+        font = pygame.font.SysFont('roboto', 25)
+        score = font.render(f"{self.snake.length}", True, "red")
+        score_x = int(SCREEN_WIDTH - SIZE)
+        score_y = int(SCREEN_HEIGHT - SIZE)
+        apple_image = pygame.image.load("resource/apple.png")
+        score_rect = score.get_rect(center=(score_x, score_y))
+        apple_rect = apple_image.get_rect(midright=(score_rect.left, score_rect.centery))
+        bg_rect = pygame.Rect(apple_rect.left, apple_rect.top, apple_rect.width + score_rect.width + 10,
+                              apple_rect.height)
+        pygame.draw.rect(self.surface, "black", bg_rect, 3)
+        self.surface.blit(apple_image, apple_rect)
+        self.surface.blit(score, score_rect)
 
     def play(self):
         self.snake.walk()
