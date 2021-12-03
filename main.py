@@ -4,10 +4,15 @@ import time
 import random
 
 SIZE = 40
+X = 20
+Y = 18
 BACKGROUND_COLOR = (0, 230, 0)
 GRASS_COLOR = (0, 179, 0)
-SCREEN_WIDTH = SIZE * 10
-SCREEN_HEIGHT = SIZE * 8
+SCREEN_WIDTH = SIZE * X
+SCREEN_HEIGHT = SIZE * Y
+CURRENT_HIGH_SCORE = 0
+LETTER_COLOUR = (204, 0, 0)
+FONT_SIZE = X + Y
 
 
 class Tree:
@@ -183,25 +188,40 @@ class Game:
             time.sleep(0.5)
 
     def show_game_over(self):
-        self.surface.fill(BACKGROUND_COLOR)
-        font = pygame.font.SysFont('roboto', SIZE)
-        game_over = font.render(f"Game is over! Your score is: {self.snake.length}", True, (255, 255, 255))
-        self.surface.blit(game_over, (120, 320))
-        play_again = font.render(f"To play again press Enter. To exit press Escape!", True, (255, 255, 255))
-        self.surface.blit(play_again, (240, 350))
+        # create background
+        self.surface.fill("white")
+        background_picture = pygame.image.load("resource/snake_background.png")
+        background_picture = pygame.transform.scale(background_picture, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.surface.blit(background_picture, (0, 0))
+
+        font = pygame.font.SysFont('roboto', FONT_SIZE)
+        game_over = font.render(f"Game is over! Your score is: {self.snake.length}", True, LETTER_COLOUR)
+        game_over_rect = game_over.get_rect()
+        game_over_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - SIZE)
+        self.surface.blit(game_over, game_over_rect)
+        play_again = font.render(f"To play again press Enter. To exit press Escape!", True, LETTER_COLOUR)
+        play_again_rect = play_again.get_rect()
+        play_again_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+        self.surface.blit(play_again, play_again_rect)
         pygame.display.flip()
 
     def display_score(self):
-        font = pygame.font.SysFont('roboto', 25)
+        # set the font
+        font = pygame.font.SysFont('roboto', FONT_SIZE)
+
         score = font.render(f"{self.snake.length}", True, "red")
         score_x = int(SCREEN_WIDTH - SIZE + 5)
         score_y = int(SCREEN_HEIGHT - SIZE)
-        apple_image = pygame.image.load("resource/apple.png")
         score_rect = score.get_rect(center=(score_x, score_y))
+
+        apple_image = pygame.image.load("resource/apple.png")
         apple_rect = apple_image.get_rect(midright=(score_rect.left, score_rect.centery))
+
+        # Create the border
         bg_rect = pygame.Rect(apple_rect.left, apple_rect.top, apple_rect.width + score_rect.width + 10,
                               apple_rect.height)
         pygame.draw.rect(self.surface, "black", bg_rect, 3)
+
         self.surface.blit(apple_image, apple_rect)
         self.surface.blit(score, score_rect)
 
