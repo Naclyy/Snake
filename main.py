@@ -188,6 +188,7 @@ class Game:
             time.sleep(0.5)
 
     def show_game_over(self):
+        global CURRENT_HIGH_SCORE
         # create background
         self.surface.fill("white")
         background_picture = pygame.image.load("resource/snake_background.png")
@@ -195,14 +196,29 @@ class Game:
         self.surface.blit(background_picture, (0, 0))
 
         font = pygame.font.SysFont('roboto', FONT_SIZE)
+
         game_over = font.render(f"Game is over! Your score is: {self.snake.length}", True, LETTER_COLOUR)
         game_over_rect = game_over.get_rect()
         game_over_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - SIZE)
         self.surface.blit(game_over, game_over_rect)
+
+        if CURRENT_HIGH_SCORE < self.snake.length:
+            CURRENT_HIGH_SCORE = self.snake.length
+            high_score = font.render(f"You've beaten the HighScore. Congrats!!!", True, LETTER_COLOUR)
+            high_score_rect = game_over.get_rect()
+            high_score_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+            self.surface.blit(high_score, high_score_rect)
+        else:
+            high_score = font.render(f"The current HighScore is {CURRENT_HIGH_SCORE}", True, LETTER_COLOUR)
+            high_score_rect = game_over.get_rect()
+            high_score_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+            self.surface.blit(high_score, high_score_rect)
+
         play_again = font.render(f"To play again press Enter. To exit press Escape!", True, LETTER_COLOUR)
         play_again_rect = play_again.get_rect()
-        play_again_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+        play_again_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE)
         self.surface.blit(play_again, play_again_rect)
+
         pygame.display.flip()
 
     def display_score(self):
