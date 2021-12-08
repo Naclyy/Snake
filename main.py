@@ -149,10 +149,7 @@ class Game:
         # this is the game window
         self.surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-        # change the screen color
-        self.surface.fill(BACKGROUND_COLOR)
-
-        pygame.display.flip()
+        self.click = False
         self.snake = Snake(self.surface, 1)
         self.snake.draw()
         self.tree = Tree(self.surface)
@@ -168,10 +165,15 @@ class Game:
         loop = True
         pause = False
         while loop:
+            self.click = False
             for event in pygame.event.get():
+                if event.type == MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        self.click = True
                 if event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
-                        loop = False
+                        self.reset()
+                        return
                     if event.key == K_RETURN:
                         pause = False
                     if not pause:
@@ -184,7 +186,7 @@ class Game:
                         if event.key == K_RIGHT:
                             self.snake.move_right()
                 elif event.type == QUIT:
-                    loop = False
+                    exit()
             try:
                 if not pause:
                     self.play()
@@ -194,6 +196,117 @@ class Game:
                 self.reset()
 
             time.sleep(0.5)
+
+    def menu(self):
+        loop = True
+        while loop:
+            font = pygame.font.SysFont('roboto', FONT_SIZE)
+            # set the menu background
+            self.surface.fill("white")
+            background_picture = pygame.image.load("resource/snake_background.png")
+            background_picture = pygame.transform.scale(background_picture, (SCREEN_WIDTH, SCREEN_HEIGHT))
+            self.surface.blit(background_picture, (0, 0))
+
+            # get mouse coordinates
+            mx, my = pygame.mouse.get_pos()
+
+            play_button = self.draw_text('Start Game', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 160)
+            options_button = self.draw_text('Options', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 80)
+            help_button = self.draw_text('Help', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 0)
+            exit_button = self.draw_text('Exit', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 80)
+
+            if play_button.collidepoint((mx, my)):
+                if self.click is True:
+                    self.run()
+            if options_button.collidepoint((mx, my)):
+                if self.click is True:
+                    self.option_screen()
+            if help_button.collidepoint((mx, my)):
+                if self.click is True:
+                    self.click = False
+                    self.help_screen()
+            if exit_button.collidepoint((mx, my)):
+                if self.click is True:
+                    exit()
+
+            pygame.display.flip()
+            self.click = False
+            for event in pygame.event.get():
+                if event.type == MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        self.click = True
+                if event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        pass
+                elif event.type == QUIT:
+                    exit()
+
+    def draw_text(self, text, size, x, y):
+        font_name = '8-BIT WONDER.TTF'
+        font_name = pygame.font.get_default_font()
+        font = pygame.font.Font(font_name, size)
+        text_surface = font.render(text, True, LETTER_COLOUR)
+        text_rect = text_surface.get_rect()
+        text_rect.center = (x, y)
+        self.surface.blit(text_surface, text_rect)
+        return text_rect
+
+    def help_screen(self):
+        loop = True
+        while loop:
+
+            self.surface.fill(GRASS_COLOR)
+            self.draw_text('How to play the game:', 50, SCREEN_WIDTH / 2, SIZE * 4)
+            self.draw_text('W, A, S, D - to move the snake', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - SIZE * 2)
+            self.draw_text('M - to mute the music', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+            self.draw_text('ESC - to go back', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 2)
+            back_button = self.draw_text('Go back', 30, SIZE * 2, SCREEN_HEIGHT - SIZE)
+            pygame.display.flip()
+
+            mx, my = pygame.mouse.get_pos()
+
+            if back_button.collidepoint((mx, my)):
+                if self.click is True:
+                    loop = False
+            self.click = False
+            for event in pygame.event.get():
+                if event.type == MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        self.click = True
+                if event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        loop = False
+                if event.type == QUIT:
+                    exit()
+
+    def option_screen(self):
+        loop = True
+        while loop:
+
+            self.surface.fill(GRASS_COLOR)
+            self.draw_text('Select Difficulty:', 50, SCREEN_WIDTH / 2, SIZE * 4)
+            self.draw_text('EASY', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - SIZE * 2)
+            self.draw_text('MEDIUM', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+            self.draw_text('HARD', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 2)
+            self.draw_text('EXTREME', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 4)
+            back_button = self.draw_text('Go back', 30, SIZE * 2, SCREEN_HEIGHT - SIZE)
+            pygame.display.flip()
+
+            mx, my = pygame.mouse.get_pos()
+
+            if back_button.collidepoint((mx, my)):
+                if self.click is True:
+                    loop = False
+            self.click = False
+            for event in pygame.event.get():
+                if event.type == MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        self.click = True
+                if event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        loop = False
+                if event.type == QUIT:
+                    exit()
 
     def read_trees_from_file(self):
         file = open("trees_position.txt", "r")
@@ -287,4 +400,4 @@ class Game:
 
 if __name__ == '__main__':
     game = Game()
-    game.run()
+    game.menu()
