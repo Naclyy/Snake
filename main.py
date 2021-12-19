@@ -13,6 +13,10 @@ SCREEN_HEIGHT = SIZE * Y
 CURRENT_HIGH_SCORE = 0
 LETTER_COLOUR = (204, 0, 0)
 FONT_SIZE = X + Y
+NIGHT_MODE = False
+NIGHT_MODE_BACKGROUND_COLOR = (76, 31, 255)
+NIGHT_MODE_GRASS_COLOR = (29, 0, 145)
+MUTED = False
 
 
 class Tree:
@@ -76,6 +80,10 @@ class Snake:
         self.x = [SIZE] * length
         self.y = [SIZE] * length
         self.direction = 'down'
+        if not NIGHT_MODE:
+            self.night_mode = False
+        else:
+            self.night_mode = True
 
     def draw_grass(self):
         for row in range(SCREEN_WIDTH):
@@ -83,15 +91,24 @@ class Snake:
                 for col in range(SCREEN_HEIGHT):
                     if col % 2 == 0:
                         grass_rect = pygame.Rect(col * SIZE, row * SIZE, SIZE, SIZE)
-                        pygame.draw.rect(self.parent_screen, GRASS_COLOR, grass_rect)
+                        if not self.night_mode:
+                            pygame.draw.rect(self.parent_screen, GRASS_COLOR, grass_rect)
+                        else:
+                            pygame.draw.rect(self.parent_screen, NIGHT_MODE_GRASS_COLOR, grass_rect)
             else:
                 for col in range(SCREEN_HEIGHT):
                     if col % 2 != 0:
                         grass_rect = pygame.Rect(col * SIZE, row * SIZE, SIZE, SIZE)
-                        pygame.draw.rect(self.parent_screen, GRASS_COLOR, grass_rect)
+                        if not self.night_mode:
+                            pygame.draw.rect(self.parent_screen, GRASS_COLOR, grass_rect)
+                        else:
+                            pygame.draw.rect(self.parent_screen, NIGHT_MODE_GRASS_COLOR, grass_rect)
 
     def draw(self):
-        self.parent_screen.fill(BACKGROUND_COLOR)
+        if not self.night_mode:
+            self.parent_screen.fill(BACKGROUND_COLOR)
+        else:
+            self.parent_screen.fill(NIGHT_MODE_BACKGROUND_COLOR)
         self.draw_grass()
         for i in range(self.length):
             self.parent_screen.blit(self.block, (self.x[i], self.y[i]))
@@ -143,9 +160,56 @@ def is_collision(x1, y1, x2, y2):
 
 
 class Game:
-    def __init__(self):
-        pygame.init()
 
+    def draw_cursor(self):
+        self.draw_text('*', 50, self.cursor_rect.x, self.cursor_rect.y)
+
+    def move_cursor(self, state, key):
+        if key == 'Down':
+            if state == 'Start':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 - 70)
+                return 'Options'
+            elif state == 'Options':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 80, SCREEN_HEIGHT / 2 + 10)
+                return 'Help'
+            elif state == 'Help':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 90)
+                return 'Exit'
+            elif state == 'Exit':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 160, SCREEN_HEIGHT / 2 - 150)
+                return 'Start'
+        elif key == 'Up':
+            if state == 'Start':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 90)
+                return 'Exit'
+            elif state == 'Options':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 160, SCREEN_HEIGHT / 2 - 150)
+                return 'Start'
+            elif state == 'Help':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 - 70)
+                return 'Options'
+            elif state == 'Exit':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 80, SCREEN_HEIGHT / 2 + 10)
+                return 'Help'
+        elif key == 'Mouse':
+            if state == 'Start':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 160, SCREEN_HEIGHT / 2 - 150)
+                return 'Start'
+            elif state == 'Options':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 - 70)
+                return 'Options'
+            elif state == 'Help':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 80, SCREEN_HEIGHT / 2 + 10)
+                return 'Help'
+            elif state == 'Exit':
+                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 90)
+                return 'Exit'
+
+    def __init__(self):
+
+        self.cursor_rect = pygame.Rect(0, 0, 0, 0)
+        pygame.init()
+        pygame.mixer.init()
         # this is the game window
         self.surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
@@ -162,6 +226,7 @@ class Game:
         self.apple = Apple(self.surface, self.snake, self.tree)
 
     def run(self):
+        global MUTED, NIGHT_MODE
         loop = True
         pause = False
         while loop:
@@ -171,10 +236,29 @@ class Game:
                     if event.button == 1:
                         self.click = True
                 if event.type == KEYDOWN:
+                    if event.key == K_m:
+                        if not pause:
+                            if not MUTED:
+                                MUTED = True
+                                pygame.mixer.music.stop()
+                            else:
+                                MUTED = False
+                                pygame.mixer.music.play()
+                    if event.key == K_n:
+                        if not NIGHT_MODE:
+                            NIGHT_MODE = True
+                            self.snake.night_mode = True
+                        else:
+                            NIGHT_MODE = False
+                            self.snake.night_mode = False
                     if event.key == K_ESCAPE:
                         self.reset()
+                        pygame.mixer.music.stop()
                         return
                     if event.key == K_RETURN:
+                        if pause:
+                            if not MUTED:
+                                pygame.mixer.music.play()
                         pause = False
                     if not pause:
                         if event.key == K_UP:
@@ -198,15 +282,17 @@ class Game:
             time.sleep(0.5)
 
     def menu(self):
+        state = 'Start'
+        self.cursor_rect.center = (SCREEN_WIDTH / 2 - 160, SCREEN_HEIGHT / 2 - 150)
+
         loop = True
         while loop:
-            font = pygame.font.SysFont('roboto', FONT_SIZE)
             # set the menu background
             self.surface.fill("white")
             background_picture = pygame.image.load("resource/snake_background.png")
             background_picture = pygame.transform.scale(background_picture, (SCREEN_WIDTH, SCREEN_HEIGHT))
             self.surface.blit(background_picture, (0, 0))
-
+            self.draw_cursor()
             # get mouse coordinates
             mx, my = pygame.mouse.get_pos()
 
@@ -214,18 +300,22 @@ class Game:
             options_button = self.draw_text('Options', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 80)
             help_button = self.draw_text('Help', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 0)
             exit_button = self.draw_text('Exit', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 80)
-
             if play_button.collidepoint((mx, my)):
+                state = self.move_cursor('Start', 'Mouse')
                 if self.click is True:
+                    play_background()
                     self.run()
             if options_button.collidepoint((mx, my)):
+                state = self.move_cursor('Options', 'Mouse')
                 if self.click is True:
                     self.option_screen()
             if help_button.collidepoint((mx, my)):
+                state = self.move_cursor('Help', 'Mouse')
                 if self.click is True:
                     self.click = False
                     self.help_screen()
             if exit_button.collidepoint((mx, my)):
+                state = self.move_cursor('Exit', 'Mouse')
                 if self.click is True:
                     exit()
 
@@ -238,6 +328,20 @@ class Game:
                 if event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
                         pass
+                    if event.key == K_UP:
+                        state = self.move_cursor(state, 'Up')
+                    if event.key == K_DOWN:
+                        state = self.move_cursor(state, 'Down')
+                    if event.key == K_RETURN:
+                        if state == 'Start':
+                            play_background()
+                            self.run()
+                        if state == 'Options':
+                            self.option_screen()
+                        if state == 'Help':
+                            self.help_screen()
+                        if state == 'Exit':
+                            exit()
                 elif event.type == QUIT:
                     exit()
 
@@ -258,8 +362,9 @@ class Game:
             self.surface.fill(GRASS_COLOR)
             self.draw_text('How to play the game:', 50, SCREEN_WIDTH / 2, SIZE * 4)
             self.draw_text('W, A, S, D - to move the snake', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - SIZE * 2)
-            self.draw_text('M - to mute the music', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-            self.draw_text('ESC - to go back', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 2)
+            self.draw_text('N - to activate night mode', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+            self.draw_text('M - to mute the music', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 2)
+            self.draw_text('ESC - to go back', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 4)
             back_button = self.draw_text('Go back', 30, SIZE * 2, SCREEN_HEIGHT - SIZE)
             pygame.display.flip()
 
@@ -322,31 +427,20 @@ class Game:
         background_picture = pygame.transform.scale(background_picture, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.surface.blit(background_picture, (0, 0))
 
-        font = pygame.font.SysFont('roboto', FONT_SIZE)
-
-        game_over = font.render(f"Game is over! Your score is: {self.snake.length}", True, LETTER_COLOUR)
-        game_over_rect = game_over.get_rect()
-        game_over_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - SIZE)
-        self.surface.blit(game_over, game_over_rect)
+        self.draw_text(f"Game is over! Your score is: {self.snake.length}", 50, SCREEN_WIDTH / 2, SIZE * 4)
 
         if CURRENT_HIGH_SCORE < self.snake.length:
             CURRENT_HIGH_SCORE = self.snake.length
-            high_score = font.render(f"You've beaten the HighScore. Congrats!!!", True, LETTER_COLOUR)
-            high_score_rect = game_over.get_rect()
-            high_score_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-            self.surface.blit(high_score, high_score_rect)
+            self.draw_text(f"You've beaten your HighScore!!!", 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - SIZE * 2)
         else:
-            high_score = font.render(f"The current HighScore is {CURRENT_HIGH_SCORE}", True, LETTER_COLOUR)
-            high_score_rect = game_over.get_rect()
-            high_score_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-            self.surface.blit(high_score, high_score_rect)
+            self.draw_text(f"Your current HighScore is {CURRENT_HIGH_SCORE}", 50, SCREEN_WIDTH / 2,
+                           SCREEN_HEIGHT / 2 - SIZE * 2)
 
-        play_again = font.render(f"To play again press Enter. To exit press Escape!", True, LETTER_COLOUR)
-        play_again_rect = play_again.get_rect()
-        play_again_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE)
-        self.surface.blit(play_again, play_again_rect)
-
+        self.draw_text(f"To play again press Enter.", 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+        self.draw_text(f"To exit press Escape.", 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 2)
         pygame.display.flip()
+
+        pygame.mixer.music.stop()
 
     def display_score(self):
         # set the font
@@ -377,12 +471,14 @@ class Game:
 
         # snake colliding with apple
         if is_collision(self.snake.x[0], self.snake.y[0], self.apple.x, self.apple.y):
+            play_sound("eat_apple")
             self.snake.increase_length()
             self.apple.move()
 
         # snake colliding with itself
         for i in range(3, self.snake.length):
             if is_collision(self.snake.x[0], self.snake.y[0], self.snake.x[i], self.snake.y[i]):
+                play_sound("crash")
                 raise "Game Over"
 
         # snake colliding with screen border
@@ -390,12 +486,28 @@ class Game:
                 or self.snake.x[0] > SCREEN_WIDTH - SIZE and self.snake.direction == 'right' \
                 or self.snake.y[0] < 0 and self.snake.direction == 'up' \
                 or self.snake.y[0] > SCREEN_HEIGHT - SIZE and self.snake.direction == 'down':
+            play_sound("crash")
             raise "Game Over"
 
         # snake colliding with tree
         for i in range(self.tree.number_of_trees):
             if is_collision(self.snake.x[0], self.snake.y[0], self.tree.x[i], self.tree.y[i]):
+                play_sound("crash")
                 raise "Game Over"
+
+
+def play_sound(type_of_sound):
+    sound = ""
+    if type_of_sound == 'eat_apple':
+        sound = pygame.mixer.Sound("resource/Minecraft Eating - Sound Effect (HD).mp3")
+    if type_of_sound == 'crash':
+        sound = pygame.mixer.Sound("resource/video game over sound effect.mp3")
+    pygame.mixer.Sound.play(sound)
+
+
+def play_background():
+    pygame.mixer.music.load("resource/Theme (30 minutes).mp3")
+    pygame.mixer.music.play()
 
 
 if __name__ == '__main__':
