@@ -17,34 +17,34 @@ NIGHT_MODE = False
 NIGHT_MODE_BACKGROUND_COLOR = (76, 31, 255)
 NIGHT_MODE_GRASS_COLOR = (29, 0, 145)
 MUTED = False
-DIFFICULTY = 'EASY'
+DIFFICULTY = 'Hard'
 
 
-class Tree:
+class Rock:
     def __init__(self, surface):
-        self.image = pygame.image.load("resource/tree.png")
+        self.image = pygame.image.load("resource/rock.png")
         self.parent_screen = surface
         self.x = []
         self.y = []
-        self.number_of_trees = 0
+        self.number_of_rocks = 0
 
-    def add_tree(self, x, y):
+    def add_rock(self, x, y):
         self.x.append(x)
         self.y.append(y)
-        self.number_of_trees += 1
+        self.number_of_rocks += 1
 
     def draw(self):
-        for i in range(self.number_of_trees):
+        for i in range(self.number_of_rocks):
             self.parent_screen.blit(self.image, (self.x[i], self.y[i]))
         pygame.display.flip()
 
 
 class Apple:
-    def __init__(self, surface, snake, tree):
+    def __init__(self, surface, snake, rock):
         self.image = pygame.image.load("resource/apple.png")
         self.parent_screen = surface
         self.snake = snake
-        self.tree = tree
+        self.rock = rock
         self.x = random.randint(1, int((SCREEN_WIDTH - SIZE) / SIZE)) * SIZE
         self.y = random.randint(1, int((SCREEN_HEIGHT - SIZE) / SIZE)) * SIZE
 
@@ -55,12 +55,12 @@ class Apple:
     def move(self):
         # needs improvement for the randomness
         # logic so it wont appear on top of the snake (i)
-        # logic so it wont appear on top of the tree (j)
+        # logic so it wont appear on top of the rock (j)
         i = 0
         j = 0
-        while i < self.snake.length and j < self.tree.number_of_trees:
-            if is_collision(self.snake.x[i], self.snake.y[i], self.x, self.y) or is_collision(self.tree.x[j],
-                                                                                              self.tree.y[j], self.x,
+        while i < self.snake.length and j < self.rock.number_of_rocks:
+            if is_collision(self.snake.x[i], self.snake.y[i], self.x, self.y) or is_collision(self.rock.x[j],
+                                                                                              self.rock.y[j], self.x,
                                                                                               self.y):
                 self.x = random.randint(1, int((SCREEN_WIDTH - SIZE) / SIZE)) * SIZE
                 self.y = random.randint(1, int((SCREEN_HEIGHT - SIZE) / SIZE)) * SIZE
@@ -69,7 +69,7 @@ class Apple:
             else:
                 if i < self.snake.length:
                     i += 1
-                if j < self.tree.number_of_trees:
+                if j < self.rock.number_of_rocks:
                     j += 1
 
 
@@ -85,6 +85,23 @@ class Snake:
             self.night_mode = False
         else:
             self.night_mode = True
+        self.head_up = pygame.image.load('Graphics/head_up.png').convert_alpha()
+        self.head_down = pygame.image.load('Graphics/head_down.png').convert_alpha()
+        self.head_right = pygame.image.load('Graphics/head_right.png').convert_alpha()
+        self.head_left = pygame.image.load('Graphics/head_left.png').convert_alpha()
+
+        self.tail_up = pygame.image.load('Graphics/tail_up.png').convert_alpha()
+        self.tail_down = pygame.image.load('Graphics/tail_down.png').convert_alpha()
+        self.tail_right = pygame.image.load('Graphics/tail_right.png').convert_alpha()
+        self.tail_left = pygame.image.load('Graphics/tail_left.png').convert_alpha()
+
+        self.body_vertical = pygame.image.load('Graphics/body_vertical.png').convert_alpha()
+        self.body_horizontal = pygame.image.load('Graphics/body_horizontal.png').convert_alpha()
+
+        self.body_tr = pygame.image.load('Graphics/body_tr.png').convert_alpha()
+        self.body_tl = pygame.image.load('Graphics/body_tl.png').convert_alpha()
+        self.body_br = pygame.image.load('Graphics/body_br.png').convert_alpha()
+        self.body_bl = pygame.image.load('Graphics/body_bl.png').convert_alpha()
 
     def draw_grass(self):
         for row in range(SCREEN_WIDTH):
@@ -112,7 +129,51 @@ class Snake:
             self.parent_screen.fill(NIGHT_MODE_BACKGROUND_COLOR)
         self.draw_grass()
         for i in range(self.length):
-            self.parent_screen.blit(self.block, (self.x[i], self.y[i]))
+            if i == 0:
+                if self.direction == 'right':
+                    self.parent_screen.blit(self.head_right, (self.x[i], self.y[i]))
+                elif self.direction == 'left':
+                    self.parent_screen.blit(self.head_left, (self.x[i], self.y[i]))
+                elif self.direction == 'up':
+                    self.parent_screen.blit(self.head_up, (self.x[i], self.y[i]))
+                elif self.direction == 'down':
+                    self.parent_screen.blit(self.head_down, (self.x[i], self.y[i]))
+            elif i == self.length - 1:
+                if self.x[i] < self.x[i - 1]:
+                    self.parent_screen.blit(self.tail_left, (self.x[i], self.y[i]))
+                elif self.x[i] > self.x[i - 1]:
+                    self.parent_screen.blit(self.tail_right, (self.x[i], self.y[i]))
+                elif self.y[i] < self.y[i - 1]:
+                    self.parent_screen.blit(self.tail_up, (self.x[i], self.y[i]))
+                elif self.y[i] > self.y[i - 1]:
+                    self.parent_screen.blit(self.tail_down, (self.x[i], self.y[i]))
+            else:
+                if (self.x[i + 1] > self.x[i] > self.x[i - 1] or self.x[i + 1] < self.x[i] < self.x[i - 1]) and \
+                        self.y[i] == self.y[i + 1] == self.y[i - 1]:
+                    self.parent_screen.blit(self.body_horizontal, (self.x[i], self.y[i]))
+                elif (self.y[i + 1] > self.y[i] > self.y[i - 1] or self.y[i + 1] < self.y[i] < self.y[i - 1]) and \
+                        self.x[i] == self.x[i + 1] == self.x[i - 1]:
+                    self.parent_screen.blit(self.body_vertical, (self.x[i], self.y[i]))
+                elif (self.x[i] < self.x[i + 1] and self.x[i] == self.x[i - 1]
+                      and self.y[i] == self.y[i + 1] and self.y[i] < self.y[i - 1])\
+                        or (self.x[i] < self.x[i - 1] and self.x[i] == self.x[i + 1]
+                            and self.y[i] == self.y[i - 1] and self.y[i] < self.y[i + 1]):
+                    self.parent_screen.blit(self.body_br, (self.x[i], self.y[i]))
+                elif (self.x[i] > self.x[i + 1] and self.x[i] == self.x[i - 1]
+                      and self.y[i] == self.y[i + 1] and self.y[i] > self.y[i - 1])\
+                        or (self.x[i] > self.x[i - 1] and self.x[i] == self.x[i + 1]
+                            and self.y[i] == self.y[i - 1] and self.y[i] > self.y[i + 1]):
+                    self.parent_screen.blit(self.body_tl, (self.x[i], self.y[i]))
+                elif (self.x[i] < self.x[i + 1] and self.x[i] == self.x[i - 1]
+                      and self.y[i] == self.y[i + 1] and self.y[i] > self.y[i - 1])\
+                        or (self.x[i] < self.x[i - 1] and self.x[i] == self.x[i + 1]
+                            and self.y[i] == self.y[i - 1] and self.y[i] > self.y[i + 1]):
+                    self.parent_screen.blit(self.body_tr, (self.x[i], self.y[i]))
+                elif (self.x[i] > self.x[i + 1] and self.x[i] == self.x[i - 1]
+                      and self.y[i] == self.y[i + 1] and self.y[i] < self.y[i - 1])\
+                        or (self.x[i] > self.x[i - 1] and self.x[i] == self.x[i + 1]
+                            and self.y[i] == self.y[i - 1] and self.y[i] < self.y[i + 1]):
+                    self.parent_screen.blit(self.body_bl, (self.x[i], self.y[i]))
         pygame.display.flip()
 
     def increase_length(self):
@@ -225,16 +286,16 @@ class Game:
         self.surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
         self.click = False
-        self.snake = Snake(self.surface, 1)
+        self.snake = Snake(self.surface, 2)
         self.snake.draw()
-        self.tree = Tree(self.surface)
-        self.read_trees_from_file()
-        self.apple = Apple(self.surface, self.snake, self.tree)
+        self.rock = Rock(self.surface)
+        self.read_rocks_from_file()
+        self.apple = Apple(self.surface, self.snake, self.rock)
         self.apple.draw()
 
     def reset(self):
-        self.snake = Snake(self.surface, 1)
-        self.apple = Apple(self.surface, self.snake, self.tree)
+        self.snake = Snake(self.surface, 2)
+        self.apple = Apple(self.surface, self.snake, self.rock)
 
     def run(self):
         global MUTED, NIGHT_MODE
@@ -533,11 +594,11 @@ class Game:
             self.cursor_rect_selected.center = (
                 SCREEN_WIDTH / 2 + FONT_SIZE * 3 + FONT_SIZE / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 4 - FONT_SIZE / 8)
 
-    def read_trees_from_file(self):
+    def read_rocks_from_file(self):
         file = open("trees_position.txt", "r")
-        for tree_coordinate in file:
-            self.tree.add_tree(int(tree_coordinate[0]) * SIZE, int(tree_coordinate[2]) * SIZE)
-        self.tree.draw()
+        for rock_coordinate in file:
+            self.rock.add_rock(int(rock_coordinate[0]) * SIZE, int(rock_coordinate[2]) * SIZE)
+        self.rock.draw()
 
     def show_game_over(self):
         global CURRENT_HIGH_SCORE
@@ -587,7 +648,7 @@ class Game:
     def play(self):
         self.snake.walk()
         self.apple.draw()
-        self.tree.draw()
+        self.rock.draw()
         self.display_score()
         pygame.display.flip()
 
@@ -611,9 +672,9 @@ class Game:
             play_sound("crash")
             raise "Game Over"
 
-        # snake colliding with tree
-        for i in range(self.tree.number_of_trees):
-            if is_collision(self.snake.x[0], self.snake.y[0], self.tree.x[i], self.tree.y[i]):
+        # snake colliding with rock
+        for i in range(self.rock.number_of_rocks):
+            if is_collision(self.snake.x[0], self.snake.y[0], self.rock.x[i], self.rock.y[i]):
                 play_sound("crash")
                 raise "Game Over"
 
