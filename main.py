@@ -4,8 +4,8 @@ import time
 import random
 
 SIZE = 40
-X = 20
-Y = 18
+X = 8
+Y = 9
 BACKGROUND_COLOR = (0, 230, 0)
 GRASS_COLOR = (0, 179, 0)
 SCREEN_WIDTH = SIZE * X
@@ -17,6 +17,7 @@ NIGHT_MODE = False
 NIGHT_MODE_BACKGROUND_COLOR = (76, 31, 255)
 NIGHT_MODE_GRASS_COLOR = (29, 0, 145)
 MUTED = False
+DIFFICULTY = 'EASY'
 
 
 class Tree:
@@ -161,53 +162,62 @@ def is_collision(x1, y1, x2, y2):
 
 class Game:
 
-    def draw_cursor(self):
-        self.draw_text('*', 50, self.cursor_rect.x, self.cursor_rect.y)
+    def draw_menu_cursor(self):
+        self.draw_text('*', FONT_SIZE, self.cursor_rect_menu.x, self.cursor_rect_menu.y)
 
-    def move_cursor(self, state, key):
+    def move_cursor_for_menu(self, state, key):
         if key == 'Down':
             if state == 'Start':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 - 70)
+                self.cursor_rect_menu.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 3, SCREEN_HEIGHT / 2 - FONT_SIZE * 2 + FONT_SIZE / 4)
                 return 'Options'
             elif state == 'Options':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 80, SCREEN_HEIGHT / 2 + 10)
+                self.cursor_rect_menu.center = (SCREEN_WIDTH / 2 - FONT_SIZE * 2, SCREEN_HEIGHT / 2 + FONT_SIZE / 4)
                 return 'Help'
             elif state == 'Help':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 90)
+                self.cursor_rect_menu.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 2 + FONT_SIZE / 4, SCREEN_HEIGHT / 2 + FONT_SIZE * 2 + FONT_SIZE / 4)
                 return 'Exit'
             elif state == 'Exit':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 160, SCREEN_HEIGHT / 2 - 150)
+                self.cursor_rect_menu.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 4, SCREEN_HEIGHT / 2 - FONT_SIZE * 4 + FONT_SIZE / 4)
                 return 'Start'
         elif key == 'Up':
             if state == 'Start':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 90)
+                self.cursor_rect_menu.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 2 + 10, SCREEN_HEIGHT / 2 + FONT_SIZE * 2 + FONT_SIZE / 4)
                 return 'Exit'
             elif state == 'Options':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 160, SCREEN_HEIGHT / 2 - 150)
+                self.cursor_rect_menu.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 4, SCREEN_HEIGHT / 2 - FONT_SIZE * 4 + FONT_SIZE / 4)
                 return 'Start'
             elif state == 'Help':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 - 70)
+                self.cursor_rect_menu.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 3, SCREEN_HEIGHT / 2 - FONT_SIZE * 2 + FONT_SIZE / 4)
                 return 'Options'
             elif state == 'Exit':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 80, SCREEN_HEIGHT / 2 + 10)
+                self.cursor_rect_menu.center = (SCREEN_WIDTH / 2 - FONT_SIZE * 2, SCREEN_HEIGHT / 2 + FONT_SIZE / 4)
                 return 'Help'
         elif key == 'Mouse':
             if state == 'Start':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 160, SCREEN_HEIGHT / 2 - 150)
+                self.cursor_rect_menu.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 4, SCREEN_HEIGHT / 2 - FONT_SIZE * 4 + FONT_SIZE / 4)
                 return 'Start'
             elif state == 'Options':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 - 70)
+                self.cursor_rect_menu.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 3, SCREEN_HEIGHT / 2 - FONT_SIZE * 2 + FONT_SIZE / 4)
                 return 'Options'
             elif state == 'Help':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 80, SCREEN_HEIGHT / 2 + 10)
+                self.cursor_rect_menu.center = (SCREEN_WIDTH / 2 - FONT_SIZE * 2, SCREEN_HEIGHT / 2 + FONT_SIZE / 4)
                 return 'Help'
             elif state == 'Exit':
-                self.cursor_rect.center = (SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 90)
+                self.cursor_rect_menu.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 2 + 10, SCREEN_HEIGHT / 2 + FONT_SIZE * 2 + FONT_SIZE / 4)
                 return 'Exit'
 
     def __init__(self):
-
-        self.cursor_rect = pygame.Rect(0, 0, 0, 0)
+        self.cursor_rect_menu = pygame.Rect(0, 0, 0, 0)
+        self.cursor_rect_options = pygame.Rect(0, 0, 0, 0)
         pygame.init()
         pygame.mixer.init()
         # this is the game window
@@ -278,12 +288,19 @@ class Game:
                 self.show_game_over()
                 pause = True
                 self.reset()
-
-            time.sleep(0.5)
+            if DIFFICULTY == 'MEDIUM':
+                time.sleep(0.3)
+            elif DIFFICULTY == 'HARD':
+                time.sleep(0.2)
+            elif DIFFICULTY == 'EXTREME':
+                time.sleep(0.1)
+            else:
+                time.sleep(0.5)
 
     def menu(self):
         state = 'Start'
-        self.cursor_rect.center = (SCREEN_WIDTH / 2 - 160, SCREEN_HEIGHT / 2 - 150)
+        self.cursor_rect_menu.center = (
+            SCREEN_WIDTH / 2 - FONT_SIZE * 4, SCREEN_HEIGHT / 2 - FONT_SIZE * 4 + FONT_SIZE / 4)
 
         loop = True
         while loop:
@@ -292,30 +309,31 @@ class Game:
             background_picture = pygame.image.load("resource/snake_background.png")
             background_picture = pygame.transform.scale(background_picture, (SCREEN_WIDTH, SCREEN_HEIGHT))
             self.surface.blit(background_picture, (0, 0))
-            self.draw_cursor()
+            self.draw_menu_cursor()
             # get mouse coordinates
             mx, my = pygame.mouse.get_pos()
 
-            play_button = self.draw_text('Start Game', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 160)
-            options_button = self.draw_text('Options', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 80)
-            help_button = self.draw_text('Help', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 0)
-            exit_button = self.draw_text('Exit', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 80)
+            play_button = self.draw_text('Start Game', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - FONT_SIZE * 4)
+            options_button = self.draw_text('Options', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - FONT_SIZE * 2)
+            help_button = self.draw_text('Help', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 0)
+            exit_button = self.draw_text('Exit', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 2)
             if play_button.collidepoint((mx, my)):
-                state = self.move_cursor('Start', 'Mouse')
+                state = self.move_cursor_for_menu('Start', 'Mouse')
                 if self.click is True:
                     play_background()
                     self.run()
             if options_button.collidepoint((mx, my)):
-                state = self.move_cursor('Options', 'Mouse')
+                state = self.move_cursor_for_menu('Options', 'Mouse')
                 if self.click is True:
+                    self.click = False
                     self.option_screen()
             if help_button.collidepoint((mx, my)):
-                state = self.move_cursor('Help', 'Mouse')
+                state = self.move_cursor_for_menu('Help', 'Mouse')
                 if self.click is True:
                     self.click = False
                     self.help_screen()
             if exit_button.collidepoint((mx, my)):
-                state = self.move_cursor('Exit', 'Mouse')
+                state = self.move_cursor_for_menu('Exit', 'Mouse')
                 if self.click is True:
                     exit()
 
@@ -329,24 +347,23 @@ class Game:
                     if event.key == K_ESCAPE:
                         pass
                     if event.key == K_UP:
-                        state = self.move_cursor(state, 'Up')
+                        state = self.move_cursor_for_menu(state, 'Up')
                     if event.key == K_DOWN:
-                        state = self.move_cursor(state, 'Down')
+                        state = self.move_cursor_for_menu(state, 'Down')
                     if event.key == K_RETURN:
                         if state == 'Start':
                             play_background()
                             self.run()
-                        if state == 'Options':
+                        elif state == 'Options':
                             self.option_screen()
-                        if state == 'Help':
+                        elif state == 'Help':
                             self.help_screen()
-                        if state == 'Exit':
+                        elif state == 'Exit':
                             exit()
                 elif event.type == QUIT:
                     exit()
 
     def draw_text(self, text, size, x, y):
-        font_name = '8-BIT WONDER.TTF'
         font_name = pygame.font.get_default_font()
         font = pygame.font.Font(font_name, size)
         text_surface = font.render(text, True, LETTER_COLOUR)
@@ -360,12 +377,14 @@ class Game:
         while loop:
 
             self.surface.fill(GRASS_COLOR)
-            self.draw_text('How to play the game:', 50, SCREEN_WIDTH / 2, SIZE * 4)
-            self.draw_text('W, A, S, D - to move the snake', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - SIZE * 2)
-            self.draw_text('N - to activate night mode', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-            self.draw_text('M - to mute the music', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 2)
-            self.draw_text('ESC - to go back', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 4)
-            back_button = self.draw_text('Go back', 30, SIZE * 2, SCREEN_HEIGHT - SIZE)
+            self.draw_text('How to play the game:', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - FONT_SIZE * 6)
+            self.draw_text('W, A, S, D - to move the snake', FONT_SIZE, SCREEN_WIDTH / 2,
+                           SCREEN_HEIGHT / 2 - FONT_SIZE * 2)
+            self.draw_text('N - to activate night mode', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+            self.draw_text('M - to mute the music', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 2)
+            self.draw_text('ESC - to go back', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 4)
+            back_button = self.draw_text('Go back', int(FONT_SIZE / 2), SCREEN_WIDTH / 2 - FONT_SIZE * 8,
+                                         SCREEN_HEIGHT - FONT_SIZE)
             pygame.display.flip()
 
             mx, my = pygame.mouse.get_pos()
@@ -385,24 +404,43 @@ class Game:
                     exit()
 
     def option_screen(self):
+        global DIFFICULTY
         loop = True
         while loop:
-
             self.surface.fill(GRASS_COLOR)
-            self.draw_text('Select Difficulty:', 50, SCREEN_WIDTH / 2, SIZE * 4)
-            self.draw_text('EASY', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - SIZE * 2)
-            self.draw_text('MEDIUM', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-            self.draw_text('HARD', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 2)
-            self.draw_text('EXTREME', 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 4)
-            back_button = self.draw_text('Go back', 30, SIZE * 2, SCREEN_HEIGHT - SIZE)
+            self.move_cursor_for_option(DIFFICULTY)
+            self.draw_option_cursor()
+            self.draw_text('Select Difficulty:', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - FONT_SIZE * 6)
+            easy = self.draw_text('EASY', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - FONT_SIZE * 2)
+            medium = self.draw_text('MEDIUM', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+            hard = self.draw_text('HARD', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 2)
+            extreme = self.draw_text('EXTREME', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 4)
+            back_button = self.draw_text('Go back', int(FONT_SIZE / 2), SCREEN_WIDTH / 2 - FONT_SIZE * 8,
+                                         SCREEN_HEIGHT - FONT_SIZE)
             pygame.display.flip()
 
             mx, my = pygame.mouse.get_pos()
 
             if back_button.collidepoint((mx, my)):
                 if self.click is True:
+                    self.click = False
                     loop = False
-            self.click = False
+            if easy.collidepoint((mx, my)):
+                if self.click is True:
+                    self.click = False
+                    DIFFICULTY = 'EASY'
+            if medium.collidepoint((mx, my)):
+                if self.click is True:
+                    self.click = False
+                    DIFFICULTY = 'MEDIUM'
+            if hard.collidepoint((mx, my)):
+                if self.click is True:
+                    self.click = False
+                    DIFFICULTY = 'HARD'
+            if extreme.collidepoint((mx, my)):
+                if self.click is True:
+                    self.click = False
+                    DIFFICULTY = 'EXTREME'
             for event in pygame.event.get():
                 if event.type == MOUSEBUTTONDOWN:
                     if event.button == 1:
@@ -412,6 +450,22 @@ class Game:
                         loop = False
                 if event.type == QUIT:
                     exit()
+
+    def draw_option_cursor(self):
+        self.draw_text('*', FONT_SIZE, self.cursor_rect_options.x, self.cursor_rect_options.y)
+
+    def move_cursor_for_option(self, difficulty):
+        if difficulty == 'EASY':
+            self.cursor_rect_options.center = (
+                SCREEN_WIDTH / 2 - FONT_SIZE * 2 - FONT_SIZE / 4, SCREEN_HEIGHT / 2 - FONT_SIZE * 2 + FONT_SIZE / 4)
+        elif difficulty == 'MEDIUM':
+            self.cursor_rect_options.center = (SCREEN_WIDTH / 2 - FONT_SIZE * 3, SCREEN_HEIGHT / 2 + FONT_SIZE / 4)
+        elif difficulty == 'HARD':
+            self.cursor_rect_options.center = (
+                SCREEN_WIDTH / 2 - FONT_SIZE * 2 - FONT_SIZE / 4, SCREEN_HEIGHT / 2 + FONT_SIZE * 2 + FONT_SIZE / 4)
+        elif difficulty == 'EXTREME':
+            self.cursor_rect_options.center = (
+                SCREEN_WIDTH / 2 - FONT_SIZE * 3 - FONT_SIZE / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 4 + FONT_SIZE / 4)
 
     def read_trees_from_file(self):
         file = open("trees_position.txt", "r")
@@ -427,17 +481,19 @@ class Game:
         background_picture = pygame.transform.scale(background_picture, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.surface.blit(background_picture, (0, 0))
 
-        self.draw_text(f"Game is over! Your score is: {self.snake.length}", 50, SCREEN_WIDTH / 2, SIZE * 4)
+        self.draw_text(f"Game is over! Your score is: {self.snake.length}", FONT_SIZE, SCREEN_WIDTH / 2, FONT_SIZE * 4)
 
         if CURRENT_HIGH_SCORE < self.snake.length:
             CURRENT_HIGH_SCORE = self.snake.length
-            self.draw_text(f"You've beaten your HighScore!!!", 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - SIZE * 2)
+            self.draw_text(f"You've beaten your HighScore!!!", FONT_SIZE, SCREEN_WIDTH / 2,
+                           SCREEN_HEIGHT / 2 - FONT_SIZE * 2)
         else:
-            self.draw_text(f"Your current HighScore is {CURRENT_HIGH_SCORE}", 50, SCREEN_WIDTH / 2,
-                           SCREEN_HEIGHT / 2 - SIZE * 2)
+            self.draw_text(f"Your current HighScore is {CURRENT_HIGH_SCORE}", FONT_SIZE, SCREEN_WIDTH / 2,
+                           SCREEN_HEIGHT / 2 - FONT_SIZE * 2)
 
-        self.draw_text(f"To play again press Enter.", 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-        self.draw_text(f"To exit press Escape.", 50, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + SIZE * 2)
+        self.draw_text(f"To play again press Enter.", FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+        self.draw_text(f"To exit press Escape.", FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 2)
+
         pygame.display.flip()
 
         pygame.mixer.music.stop()
