@@ -5,8 +5,8 @@ import random
 import numpy
 
 SIZE = 40
-X = 5
-Y = 5
+X = 30
+Y = 30
 BACKGROUND_COLOR = (0, 230, 0)
 GRASS_COLOR = (0, 179, 0)
 SCREEN_WIDTH = SIZE * X
@@ -18,7 +18,7 @@ NIGHT_MODE = False
 NIGHT_MODE_BACKGROUND_COLOR = (76, 31, 255)
 NIGHT_MODE_GRASS_COLOR = (29, 0, 145)
 MUTED = False
-DIFFICULTY = 'Hard'
+DIFFICULTY = 'MEDIUM'
 
 
 class Rock:
@@ -75,7 +75,6 @@ class Apple:
         for i in range(self.snake.length):
             self.obstacle_matrix[int(self.snake.x[i] / SIZE)][int(self.snake.y[i] / SIZE)] = 1
         self.x, self.y = self.generate_apple()
-
 
 
 class Snake:
@@ -355,13 +354,13 @@ class Game:
                 pause = True
                 self.reset()
             if DIFFICULTY == 'MEDIUM':
-                time.sleep(0.3)
+                time.sleep(0.6)
             elif DIFFICULTY == 'HARD':
-                time.sleep(0.2)
+                time.sleep(0.3)
             elif DIFFICULTY == 'EXTREME':
                 time.sleep(0.1)
             else:
-                time.sleep(0.5)
+                time.sleep(0.9)
 
     def menu(self):
         state = 'Start'
@@ -632,8 +631,16 @@ class Game:
     def display_score(self):
         # set the font
         font = pygame.font.SysFont('roboto', FONT_SIZE)
-
-        score = font.render(f"{self.snake.length}", True, "red")
+        score = font.render(f"1", True, "red")
+        if self.snake.length > 2:
+            if DIFFICULTY == 'EASY':
+                score = font.render(f"{self.snake.length - 1}", True, "red")
+            elif DIFFICULTY == 'MEDIUM':
+                score = font.render(f"{(self.snake.length - 1) * 2}", True, "red")
+            elif DIFFICULTY == 'HARD':
+                score = font.render(f"{(self.snake.length - 1) * 3}", True, "red")
+            elif DIFFICULTY == 'EXTREME':
+                score = font.render(f"{(self.snake.length - 1) * 5}", True, "red")
         score_x = int(SCREEN_WIDTH - SIZE + 5)
         score_y = int(SCREEN_HEIGHT - SIZE)
         score_rect = score.get_rect(center=(score_x, score_y))
