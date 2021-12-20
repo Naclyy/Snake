@@ -4,8 +4,8 @@ import time
 import random
 
 SIZE = 40
-X = 8
-Y = 9
+X = 20
+Y = 20
 BACKGROUND_COLOR = (0, 230, 0)
 GRASS_COLOR = (0, 179, 0)
 SCREEN_WIDTH = SIZE * X
@@ -218,6 +218,7 @@ class Game:
     def __init__(self):
         self.cursor_rect_menu = pygame.Rect(0, 0, 0, 0)
         self.cursor_rect_options = pygame.Rect(0, 0, 0, 0)
+        self.cursor_rect_selected = pygame.Rect(0, 0, 0, 0)
         pygame.init()
         pygame.mixer.init()
         # this is the game window
@@ -403,12 +404,64 @@ class Game:
                 if event.type == QUIT:
                     exit()
 
+    def move_cursor_for_options(self, state, key):
+        if key == 'Down':
+            if state == 'EASY':
+                self.cursor_rect_options.center = (SCREEN_WIDTH / 2 - FONT_SIZE * 3, SCREEN_HEIGHT / 2 - FONT_SIZE / 8)
+                return 'MEDIUM'
+            elif state == 'MEDIUM':
+                self.cursor_rect_options.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 2 - FONT_SIZE / 4, SCREEN_HEIGHT / 2 + FONT_SIZE * 2 - FONT_SIZE / 8)
+                return 'HARD'
+            elif state == 'HARD':
+                self.cursor_rect_options.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 3 - FONT_SIZE / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 4 - FONT_SIZE / 8)
+                return 'EXTREME'
+            elif state == 'EXTREME':
+                self.cursor_rect_options.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 2 - FONT_SIZE / 4, SCREEN_HEIGHT / 2 - FONT_SIZE * 2 - FONT_SIZE / 8)
+                return 'EASY'
+        elif key == 'Up':
+            if state == 'EASY':
+                self.cursor_rect_options.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 3 - FONT_SIZE / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 4 - FONT_SIZE / 8)
+                return 'EXTREME'
+            elif state == 'MEDIUM':
+                self.cursor_rect_options.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 2 - FONT_SIZE / 4, SCREEN_HEIGHT / 2 - FONT_SIZE * 2 - FONT_SIZE / 8)
+                return 'EASY'
+            elif state == 'HARD':
+                self.cursor_rect_options.center = (SCREEN_WIDTH / 2 - FONT_SIZE * 3, SCREEN_HEIGHT / 2 - FONT_SIZE / 8)
+                return 'MEDIUM'
+            elif state == 'EXTREME':
+                self.cursor_rect_options.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 2 - FONT_SIZE / 4, SCREEN_HEIGHT / 2 + FONT_SIZE * 2 - FONT_SIZE / 8)
+                return 'HARD'
+        elif key == 'Mouse':
+            if state == 'EASY':
+                self.cursor_rect_options.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 2 - FONT_SIZE / 4, SCREEN_HEIGHT / 2 - FONT_SIZE * 2 + FONT_SIZE / 8)
+                return 'EASY'
+            elif state == 'MEDIUM':
+                self.cursor_rect_options.center = (SCREEN_WIDTH / 2 - FONT_SIZE * 3, SCREEN_HEIGHT / 2 + FONT_SIZE / 8)
+                return 'MEDIUM'
+            elif state == 'HARD':
+                self.cursor_rect_options.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 2 - FONT_SIZE / 4, SCREEN_HEIGHT / 2 + FONT_SIZE * 2 + FONT_SIZE / 8)
+                return 'HARD'
+            elif state == 'EXTREME':
+                self.cursor_rect_options.center = (
+                    SCREEN_WIDTH / 2 - FONT_SIZE * 3 - FONT_SIZE / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 4 + FONT_SIZE / 8)
+                return 'EXTREME'
+
     def option_screen(self):
         global DIFFICULTY
+        state = 'EASY'
         loop = True
         while loop:
             self.surface.fill(GRASS_COLOR)
-            self.move_cursor_for_option(DIFFICULTY)
+            self.selected_option(DIFFICULTY)
+            self.draw_selected_cursor()
             self.draw_option_cursor()
             self.draw_text('Select Difficulty:', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - FONT_SIZE * 6)
             easy = self.draw_text('EASY', FONT_SIZE, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - FONT_SIZE * 2)
@@ -426,18 +479,22 @@ class Game:
                     self.click = False
                     loop = False
             if easy.collidepoint((mx, my)):
+                state = self.move_cursor_for_options('EASY', 'Mouse')
                 if self.click is True:
                     self.click = False
                     DIFFICULTY = 'EASY'
             if medium.collidepoint((mx, my)):
+                state = self.move_cursor_for_options('MEDIUM', 'Mouse')
                 if self.click is True:
                     self.click = False
                     DIFFICULTY = 'MEDIUM'
             if hard.collidepoint((mx, my)):
+                state = self.move_cursor_for_options('HARD', 'Mouse')
                 if self.click is True:
                     self.click = False
                     DIFFICULTY = 'HARD'
             if extreme.collidepoint((mx, my)):
+                state = self.move_cursor_for_options('EXTREME', 'Mouse')
                 if self.click is True:
                     self.click = False
                     DIFFICULTY = 'EXTREME'
@@ -446,6 +503,12 @@ class Game:
                     if event.button == 1:
                         self.click = True
                 if event.type == KEYDOWN:
+                    if event.key == K_UP:
+                        state = self.move_cursor_for_options(state, 'Up')
+                    if event.key == K_DOWN:
+                        state = self.move_cursor_for_options(state, 'Down')
+                    if event.key == K_RETURN:
+                        DIFFICULTY = state
                     if event.key == K_ESCAPE:
                         loop = False
                 if event.type == QUIT:
@@ -454,18 +517,21 @@ class Game:
     def draw_option_cursor(self):
         self.draw_text('*', FONT_SIZE, self.cursor_rect_options.x, self.cursor_rect_options.y)
 
-    def move_cursor_for_option(self, difficulty):
+    def draw_selected_cursor(self):
+        self.draw_text('<-', FONT_SIZE, self.cursor_rect_selected.x, self.cursor_rect_selected.y)
+
+    def selected_option(self, difficulty):
         if difficulty == 'EASY':
-            self.cursor_rect_options.center = (
-                SCREEN_WIDTH / 2 - FONT_SIZE * 2 - FONT_SIZE / 4, SCREEN_HEIGHT / 2 - FONT_SIZE * 2 + FONT_SIZE / 4)
+            self.cursor_rect_selected.center = (
+                SCREEN_WIDTH / 2 + FONT_SIZE * 2 + FONT_SIZE / 4, SCREEN_HEIGHT / 2 - FONT_SIZE * 2 - FONT_SIZE / 8)
         elif difficulty == 'MEDIUM':
-            self.cursor_rect_options.center = (SCREEN_WIDTH / 2 - FONT_SIZE * 3, SCREEN_HEIGHT / 2 + FONT_SIZE / 4)
+            self.cursor_rect_selected.center = (SCREEN_WIDTH / 2 + FONT_SIZE * 3, SCREEN_HEIGHT / 2 - FONT_SIZE / 8)
         elif difficulty == 'HARD':
-            self.cursor_rect_options.center = (
-                SCREEN_WIDTH / 2 - FONT_SIZE * 2 - FONT_SIZE / 4, SCREEN_HEIGHT / 2 + FONT_SIZE * 2 + FONT_SIZE / 4)
+            self.cursor_rect_selected.center = (
+                SCREEN_WIDTH / 2 + FONT_SIZE * 2 + FONT_SIZE / 4, SCREEN_HEIGHT / 2 + FONT_SIZE * 2 - FONT_SIZE / 8)
         elif difficulty == 'EXTREME':
-            self.cursor_rect_options.center = (
-                SCREEN_WIDTH / 2 - FONT_SIZE * 3 - FONT_SIZE / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 4 + FONT_SIZE / 4)
+            self.cursor_rect_selected.center = (
+                SCREEN_WIDTH / 2 + FONT_SIZE * 3 + FONT_SIZE / 2, SCREEN_HEIGHT / 2 + FONT_SIZE * 4 - FONT_SIZE / 8)
 
     def read_trees_from_file(self):
         file = open("trees_position.txt", "r")
