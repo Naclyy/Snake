@@ -2,10 +2,11 @@ import pygame
 from pygame.locals import *
 import time
 import random
+import numpy
 
 SIZE = 40
-X = 20
-Y = 20
+X = 5
+Y = 5
 BACKGROUND_COLOR = (0, 230, 0)
 GRASS_COLOR = (0, 179, 0)
 SCREEN_WIDTH = SIZE * X
@@ -45,39 +46,42 @@ class Apple:
         self.parent_screen = surface
         self.snake = snake
         self.rock = rock
-        self.x = random.randint(1, int((SCREEN_WIDTH - SIZE) / SIZE)) * SIZE
-        self.y = random.randint(1, int((SCREEN_HEIGHT - SIZE) / SIZE)) * SIZE
+        self.obstacle_matrix = numpy.zeros((X, Y))
+        self.add_rocks_to_matrix()
+        self.generate_apple()
+        self.x, self.y = self.generate_apple()
+
+    def generate_apple(self):
+        free_space = []
+        for i in range(X):
+            for j in range(Y):
+                if self.obstacle_matrix[i][j] == 0:
+                    free_space.append([i, j])
+        random_apple_spot = random.randint(1, len(free_space) - 1)
+        return free_space[random_apple_spot][0] * SIZE, free_space[random_apple_spot][1] * SIZE
+
+    def add_rocks_to_matrix(self):
+        for i in range(self.rock.number_of_rocks):
+            if self.rock.x[i] / SIZE < X and self.rock.y[i] / SIZE < Y:
+                self.obstacle_matrix[int(self.rock.x[i] / SIZE)][int(self.rock.y[i] / SIZE)] = 1
 
     def draw(self):
         self.parent_screen.blit(self.image, (self.x, self.y))
         pygame.display.flip()
 
     def move(self):
-        # needs improvement for the randomness
-        # logic so it wont appear on top of the snake (i)
-        # logic so it wont appear on top of the rock (j)
-        i = 0
-        j = 0
-        while i < self.snake.length and j < self.rock.number_of_rocks:
-            if is_collision(self.snake.x[i], self.snake.y[i], self.x, self.y) or is_collision(self.rock.x[j],
-                                                                                              self.rock.y[j], self.x,
-                                                                                              self.y):
-                self.x = random.randint(1, int((SCREEN_WIDTH - SIZE) / SIZE)) * SIZE
-                self.y = random.randint(1, int((SCREEN_HEIGHT - SIZE) / SIZE)) * SIZE
-                i = 0
-                j = 0
-            else:
-                if i < self.snake.length:
-                    i += 1
-                if j < self.rock.number_of_rocks:
-                    j += 1
+        self.obstacle_matrix = numpy.zeros((X, Y))
+        self.add_rocks_to_matrix()
+        for i in range(self.snake.length):
+            self.obstacle_matrix[int(self.snake.x[i] / SIZE)][int(self.snake.y[i] / SIZE)] = 1
+        self.x, self.y = self.generate_apple()
+
 
 
 class Snake:
     def __init__(self, surface, length):
         self.length = length
         self.parent_screen = surface
-        self.block = pygame.image.load("resource/snake_body.png")
         self.x = [SIZE] * length
         self.y = [SIZE] * length
         self.direction = 'down'
@@ -155,22 +159,22 @@ class Snake:
                         self.x[i] == self.x[i + 1] == self.x[i - 1]:
                     self.parent_screen.blit(self.body_vertical, (self.x[i], self.y[i]))
                 elif (self.x[i] < self.x[i + 1] and self.x[i] == self.x[i - 1]
-                      and self.y[i] == self.y[i + 1] and self.y[i] < self.y[i - 1])\
+                      and self.y[i] == self.y[i + 1] and self.y[i] < self.y[i - 1]) \
                         or (self.x[i] < self.x[i - 1] and self.x[i] == self.x[i + 1]
                             and self.y[i] == self.y[i - 1] and self.y[i] < self.y[i + 1]):
                     self.parent_screen.blit(self.body_br, (self.x[i], self.y[i]))
                 elif (self.x[i] > self.x[i + 1] and self.x[i] == self.x[i - 1]
-                      and self.y[i] == self.y[i + 1] and self.y[i] > self.y[i - 1])\
+                      and self.y[i] == self.y[i + 1] and self.y[i] > self.y[i - 1]) \
                         or (self.x[i] > self.x[i - 1] and self.x[i] == self.x[i + 1]
                             and self.y[i] == self.y[i - 1] and self.y[i] > self.y[i + 1]):
                     self.parent_screen.blit(self.body_tl, (self.x[i], self.y[i]))
                 elif (self.x[i] < self.x[i + 1] and self.x[i] == self.x[i - 1]
-                      and self.y[i] == self.y[i + 1] and self.y[i] > self.y[i - 1])\
+                      and self.y[i] == self.y[i + 1] and self.y[i] > self.y[i - 1]) \
                         or (self.x[i] < self.x[i - 1] and self.x[i] == self.x[i + 1]
                             and self.y[i] == self.y[i - 1] and self.y[i] > self.y[i + 1]):
                     self.parent_screen.blit(self.body_tr, (self.x[i], self.y[i]))
                 elif (self.x[i] > self.x[i + 1] and self.x[i] == self.x[i - 1]
-                      and self.y[i] == self.y[i + 1] and self.y[i] < self.y[i - 1])\
+                      and self.y[i] == self.y[i + 1] and self.y[i] < self.y[i - 1]) \
                         or (self.x[i] > self.x[i - 1] and self.x[i] == self.x[i + 1]
                             and self.y[i] == self.y[i - 1] and self.y[i] < self.y[i + 1]):
                     self.parent_screen.blit(self.body_bl, (self.x[i], self.y[i]))
