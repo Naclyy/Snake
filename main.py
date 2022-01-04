@@ -1,12 +1,23 @@
+import json
+import sys
+
 import pygame
 from pygame.locals import *
 import time
 import random
 import numpy
 
+DEFAULT = 1
+if len(sys.argv) == 2:
+    DEFAULT = 0
+    f = open(sys.argv[1], "r")
+    data = json.loads(f.read())
+    X = data["x"]
+    Y = data["y"]
+else:
+    X = 20
+    Y = 20
 SIZE = 40
-X = 20
-Y = 20
 BACKGROUND_COLOR = (0, 230, 0)
 GRASS_COLOR = (0, 179, 0)
 SCREEN_WIDTH = SIZE * X
@@ -74,6 +85,7 @@ class Rock:
     """
     Class used to create the obstacle logic.
     """
+
     def __init__(self, surface):
         self.image = pygame.image.load("resource/rock.png")
         self.parent_screen = surface
@@ -102,6 +114,7 @@ class Apple:
     """
     Class used to create the apple logic.
     """
+
     def __init__(self, surface, snake, rock):
         self.image = pygame.image.load("resource/apple.png")
         self.parent_screen = surface
@@ -153,6 +166,7 @@ class Snake:
     """
     Class used to create the Snake logic.
     """
+
     def __init__(self, surface, length):
         self.length = length
         self.parent_screen = surface
@@ -320,6 +334,7 @@ class Play:
     """
     Class used to create the snake game logic.
     """
+
     def __init__(self, surface):
         self.surface = surface
         self.click = False
@@ -406,10 +421,10 @@ class Play:
         """
         Callable used to read the obstacles from json.
         """
-        file = open("trees_position.txt", "r")
-        for rock_coordinate in file:
-            self.rock.add_rock(int(rock_coordinate[0]) * SIZE, int(rock_coordinate[2]) * SIZE)
-        self.rock.draw()
+        if DEFAULT == 0:
+            for i in range(len(data["obstacle_list"])):
+                self.rock.add_rock(data["obstacle_list"][i][0] * SIZE, data["obstacle_list"][i][1] * SIZE)
+            self.rock.draw()
 
     def show_game_over(self):
         """
@@ -513,6 +528,7 @@ class Help:
     """
     Class used to create the help screen.
     """
+
     def __init__(self, surface):
         self.click = False
         self.surface = surface
@@ -558,6 +574,7 @@ class Option:
     """
     Class used to create the option screen.
     """
+
     def __init__(self, surface):
         self.click = False
         self.surface = surface
@@ -710,6 +727,7 @@ class Menu:
     """
     Class used to create the menu screen.
     """
+
     def __init__(self):
         pygame.init()
         pygame.mixer.init()
