@@ -7,6 +7,7 @@ import time
 import random
 import numpy
 
+# variable used to test if the program got any argument
 DEFAULT = 1
 if len(sys.argv) == 2:
     DEFAULT = 0
@@ -56,7 +57,7 @@ def play_background():
 
 def draw_text(text, size, x_position, y_position, surface):
     """
-    Callable used to draw text in the center of the screen.
+    Callable used to draw text on given position on the screen.
     :return: Rect that has the text
     :rtype: Rect
     """
